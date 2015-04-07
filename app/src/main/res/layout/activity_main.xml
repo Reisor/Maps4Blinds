@@ -1,0 +1,34 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:mapbox="http://schemas.android.com/apk/res-auto"
+                android:orientation="vertical"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent" >
+
+
+    <com.mapbox.mapboxsdk.views.MapView
+            android:id="@+id/mapview"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+			mapbox:mapid="@string/streetMapId"
+            mapbox:accessToken="@string/testAccessToken"/>
+
+    <!-- <ImageView android:layout_width="100dp"
+			   android:layout_height="65dp"
+			   android:layout_alignParentTop="true"
+               android:layout_alignParentRight="true"
+			   android:src="@drawable/mblogo"
+			   android:layout_marginTop="-10dp"
+			   android:contentDescription="@string/mapbox"
+               android:id="@+id/imageView"/> -->
+
+    <!-- <Button
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/reportBugs"
+            android:id="@+id/bugsButton"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"/> -->
+
+</RelativeLayout>

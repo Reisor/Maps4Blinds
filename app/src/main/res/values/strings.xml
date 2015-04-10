@@ -6,6 +6,9 @@
     <string name="menu_examplemaps">Example Maps</string>
 	<string name="reportBugs">Report Bugs</string>
 
+    <string name="street_name">Hello world</string>
+    <string name="search_button_name">Buscar</string>
+
 	<!-- Map Labels -->
 	<string name="satellite">Satellite</string>
 	<string name="terrain">Terrain</string>

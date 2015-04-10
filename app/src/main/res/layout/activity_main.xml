@@ -4,13 +4,37 @@
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent" >
 
+    <LinearLayout
+        android:id="@+id/linear_layout_main"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-    <com.mapbox.mapboxsdk.views.MapView
+        <TextView
+            android:id="@+id/street_name"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:layout_gravity="center"
+            android:textSize="35sp"
+            android:gravity="center"
+            android:text="@string/street_name"/>
+
+        <Button
+            android:id="@+id/button1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:onClick="speakText"
+            android:text="@string/search_button_name" />
+        
+        </LinearLayout>
+
+    <!-- <com.mapbox.mapboxsdk.views.MapView
             android:id="@+id/mapview"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
 			mapbox:mapid="@string/streetMapId"
-            mapbox:accessToken="@string/testAccessToken"/>
+            mapbox:accessToken="@string/testAccessToken"/> -->
 
     <!-- <ImageView android:layout_width="100dp"
 			   android:layout_height="65dp"

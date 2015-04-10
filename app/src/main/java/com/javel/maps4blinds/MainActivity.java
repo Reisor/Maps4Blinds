@@ -1,18 +1,26 @@
 package com.javel.maps4blinds;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.net.Uri;
+import android.location.Address;
+import android.location.Geocoder;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.speech.tts.TextToSpeech;
 import android.support.v7.app.ActionBarActivity;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
+
 import com.crashlytics.android.Crashlytics;
 import com.mapbox.mapboxsdk.api.ILatLng;
 import com.mapbox.mapboxsdk.geometry.BoundingBox;
@@ -24,20 +32,66 @@ import com.mapbox.mapboxsdk.tileprovider.tilesource.*;
 import com.mapbox.mapboxsdk.views.MapView;
 import com.mapbox.mapboxsdk.views.util.TilesLoadedListener;
 
+import java.io.IOException;
+import java.util.List;
+import java.util.Locale;
+
 public class MainActivity extends ActionBarActivity {
 
     private MapView mv;
     private UserLocationOverlay myLocationOverlay;
     private String currentMap = null;
+    private double longitude = 0.0;
+    private double latitude = 0.0;
+    TextToSpeech ttobj;
+
+    private final LocationListener locationListener = new LocationListener() {
+        @Override
+        public void onStatusChanged(String provider, int status, Bundle extras) {
+
+        }
+
+        @Override
+        public void onProviderEnabled(String provider) {
+
+        }
+
+        @Override
+        public void onProviderDisabled(String provider) {
+
+        }
+
+        public void onLocationChanged(Location location) {
+            longitude = location.getLongitude();
+            latitude = location.getLatitude();
+        }
+    };
+
+    private LocationManager locationManager;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Crashlytics.start(this);
+        //Crashlytics.start(this);
+
+        locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 10, locationListener);
+
+        ttobj=new TextToSpeech(getApplicationContext(),
+                new TextToSpeech.OnInitListener() {
+                    @Override
+                    public void onInit(int status) {
+                        if(status != TextToSpeech.ERROR){
+                            ttobj.setLanguage(Locale.getDefault());
+                        }
+                    }
+                }
+        );
 
         setContentView(R.layout.activity_main);
 
-        mv = (MapView) findViewById(R.id.mapview);
+        /*mv = (MapView) findViewById(R.id.mapview);
         mv.setMinZoomLevel(mv.getTileProvider().getMinimumZoomLevel());
         mv.setMaxZoomLevel(mv.getTileProvider().getMaximumZoomLevel());
         mv.setCenter(mv.getTileProvider().getCenterCoordinate());
@@ -91,7 +145,7 @@ public class MainActivity extends ActionBarActivity {
                 // TODO Auto-generated method stub
                 return false;
             }
-        });
+        });*/
 //        mv.setVisibility(View.VISIBLE);
 
         /*Button bugsBut = changeButtonTypeface((Button) findViewById(R.id.bugsButton));
@@ -118,7 +172,10 @@ public class MainActivity extends ActionBarActivity {
     {
         switch (item.getItemId()) {
             case R.id.menuItemStreets:
-                replaceMapView(getString(R.string.streetMapId));
+                //replaceMapView(getString(R.string.streetMapId));
+                Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+
+                getAddressForLocation(location.getLatitude(), location.getLongitude());
                 return true;
             case R.id.menuItemSatellite:
                 replaceMapView(getString(R.string.satelliteMapId));
@@ -140,6 +197,37 @@ public class MainActivity extends ActionBarActivity {
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
+        }
+    }
+
+    public void getAddressForLocation(double LATITUDE, double LONGITUDE) {
+        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+
+        try {
+            List<Address> addresses = geocoder.getFromLocation(LATITUDE, LONGITUDE, 1);
+
+            if (addresses != null) {
+                Address returnedAddress = addresses.get(0);
+                StringBuilder strReturnedAddress = new StringBuilder();
+                for (int i = 0; i < returnedAddress.getMaxAddressLineIndex(); i++) {
+                    strReturnedAddress.append(returnedAddress.getAddressLine(i)).append(" ");
+                }
+                TextView textView = (TextView)findViewById(R.id.street_name);
+                String street = strReturnedAddress.toString();
+                textView.setText(strReturnedAddress.toString());
+                ttobj.speak(street, TextToSpeech.QUEUE_FLUSH, null);
+                Log.d("Address: ", strReturnedAddress.toString());
+                //et_lugar.setText(strReturnedAddress.toString());
+            }
+            else {
+                Log.d("No Address returned!", "");
+                //et_lugar.setText("No Address returned!");
+            }
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            Log.d("Cannot get Address!", "");
+            //et_lugar.setText("Canont get Address!");
         }
     }
 

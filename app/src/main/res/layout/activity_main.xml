@@ -19,12 +19,20 @@
             android:text="@string/street_name"/>
 
         <Button
-            android:id="@+id/button1"
+            android:id="@+id/button_find"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:onClick="onButtonPressed"
+            android:onClick="onButtonFindPressed"
             android:text="@string/search_button_name" />
+
+        <Button
+            android:id="@+id/button_service"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:onClick="onButtonServicePressed"
+            android:text="@string/button_service_off" />
         
         </LinearLayout>
 

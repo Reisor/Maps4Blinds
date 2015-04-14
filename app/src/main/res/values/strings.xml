@@ -6,6 +6,9 @@
     <!-- activity_main Labels -->
     <string name="street_name">Hello world</string>
     <string name="search_button_name">Buscar</string>
+    <string name="button_service_on">Iniciar notificaciones</string>
+    <string name="button_service_off">Parar notificaciones</string>
+
 
 	<!-- Menu Labels -->
 	<string name="menu_options">Options</string>

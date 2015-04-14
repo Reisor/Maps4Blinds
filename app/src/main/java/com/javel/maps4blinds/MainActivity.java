@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -43,6 +44,9 @@ public class MainActivity extends Activity implements
     private PendingIntent mPendingIntent;
 
     protected TextView streetName;
+    protected Button buttonService;
+
+    protected Boolean serviceStart;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +56,7 @@ public class MainActivity extends Activity implements
 
         // Add the reference to the street name textview
         streetName = (TextView)findViewById(R.id.street_name);
+        buttonService = (Button)findViewById(R.id.button_service);
 
         // Create and link the intent with the notification service
         mIntentService = new Intent(this, LocationService.class);
@@ -75,6 +80,8 @@ public class MainActivity extends Activity implements
                     }
                 }
         );
+
+        serviceStart = false;
     }
 
     @Override
@@ -109,6 +116,8 @@ public class MainActivity extends Activity implements
         // Start the notification services
         LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,
                 mLocationRequest, mPendingIntent);
+
+        serviceStart = true;
     }
 
     @Override
@@ -126,11 +135,37 @@ public class MainActivity extends Activity implements
         onChangeStreet(location);
     }
 
-    public void onButtonPressed (View v)
+    public void onButtonFindPressed (View v)
     {
         Location location = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
 
         onChangeStreet(location);
+    }
+
+    public void onButtonServicePressed (View v)
+    {
+        if (serviceStart){
+            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient,
+                    mPendingIntent);
+
+            buttonService.setText(R.string.button_service_on);
+
+            serviceStart = false;
+        }
+        else {
+            // Create the request to the location updates
+            mLocationRequest = LocationRequest.create();
+            mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+            mLocationRequest.setInterval(60000); // Update location every minute
+
+            // Start the notification services
+            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,
+                    mLocationRequest, mPendingIntent);
+
+            buttonService.setText(R.string.button_service_off);
+
+            serviceStart = true;
+        }
     }
 
     public void onChangeStreet(Location location)

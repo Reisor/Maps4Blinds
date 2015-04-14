@@ -5,7 +5,7 @@
 
 	<item
 		android:id="@+id/menu_maptypes"
-		android:title="@string/menu_examplemaps"
+		android:title="@string/app_name"
 		mapbox:showAsAction="always"
 		mapbox:actionProviderClass="com.javel.maps4blinds.MainActivityActionProvider"/>
 

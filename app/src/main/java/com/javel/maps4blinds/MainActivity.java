@@ -1,84 +1,71 @@
 package com.javel.maps4blinds;
 
-import android.app.AlertDialog;
-import android.content.Context;
-import android.content.DialogInterface;
+import android.app.PendingIntent;
 import android.content.Intent;
-import android.location.Address;
-import android.location.Geocoder;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
+import android.app.Activity;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.speech.tts.TextToSpeech;
-import android.support.v7.app.ActionBarActivity;
-import android.text.TextUtils;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.widget.Button;
+import android.view.View;
 import android.widget.TextView;
 
-import com.crashlytics.android.Crashlytics;
-import com.mapbox.mapboxsdk.api.ILatLng;
-import com.mapbox.mapboxsdk.geometry.BoundingBox;
-import com.mapbox.mapboxsdk.geometry.LatLng;
-import com.mapbox.mapboxsdk.overlay.Icon;
-import com.mapbox.mapboxsdk.overlay.Marker;
-import com.mapbox.mapboxsdk.overlay.UserLocationOverlay;
-import com.mapbox.mapboxsdk.tileprovider.tilesource.*;
-import com.mapbox.mapboxsdk.views.MapView;
-import com.mapbox.mapboxsdk.views.util.TilesLoadedListener;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 
-import java.io.IOException;
-import java.util.List;
 import java.util.Locale;
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends Activity implements
+        GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener,
+        LocationListener {
 
-    private MapView mv;
-    private UserLocationOverlay myLocationOverlay;
-    private String currentMap = null;
-    private double longitude = 0.0;
-    private double latitude = 0.0;
-    TextToSpeech ttobj;
+    private final String TAG = "Maps4Blinds";
 
-    private final LocationListener locationListener = new LocationListener() {
-        @Override
-        public void onStatusChanged(String provider, int status, Bundle extras) {
+    private GoogleApiClient mGoogleApiClient;
 
-        }
+    private LocationRequest mLocationRequest;
 
-        @Override
-        public void onProviderEnabled(String provider) {
+    /**
+     * Represents a geographical location.
+     */
+    protected Location mLastLocation;
 
-        }
+    protected TextToSpeech ttobj;
 
-        @Override
-        public void onProviderDisabled(String provider) {
+    /**
+     * Intentes for the notificaction service
+     */
+    private Intent mIntentService;
+    private PendingIntent mPendingIntent;
 
-        }
-
-        public void onLocationChanged(Location location) {
-            longitude = location.getLongitude();
-            latitude = location.getLatitude();
-        }
-    };
-
-    private LocationManager locationManager;
-
+    protected TextView streetName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //Crashlytics.start(this);
 
-        locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 10, locationListener);
+        setContentView(R.layout.activity_main);
 
-        ttobj=new TextToSpeech(getApplicationContext(),
+        // Add the reference to the street name textview
+        streetName = (TextView)findViewById(R.id.street_name);
+
+        // Create and link the intent with the notification service
+        mIntentService = new Intent(this, LocationService.class);
+        mPendingIntent = PendingIntent.getService(this, 1, mIntentService, 0);
+
+        // Initialize the google play services
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addApi(LocationServices.API)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .build();
+
+        // Initialize the text to speech object
+        ttobj = new TextToSpeech(getApplicationContext(),
                 new TextToSpeech.OnInitListener() {
                     @Override
                     public void onInit(int status) {
@@ -88,213 +75,86 @@ public class MainActivity extends ActionBarActivity {
                     }
                 }
         );
-
-        setContentView(R.layout.activity_main);
-
-        /*mv = (MapView) findViewById(R.id.mapview);
-        mv.setMinZoomLevel(mv.getTileProvider().getMinimumZoomLevel());
-        mv.setMaxZoomLevel(mv.getTileProvider().getMaximumZoomLevel());
-        mv.setCenter(mv.getTileProvider().getCenterCoordinate());
-        mv.setZoom(0);
-        currentMap = getString(R.string.streetMapId);
-
-        // Show user location (purposely not in follow mode)
-        mv.setUserLocationEnabled(true);
-
-        mv.loadFromGeoJSONURL("https://gist.githubusercontent.com/tmcw/10307131/raw/21c0a20312a2833afeee3b46028c3ed0e9756d4c/map.geojson");
-//        setButtonListeners();
-        Marker m = new Marker(mv, "Edinburgh", "Scotland", new LatLng(55.94629, -3.20777));
-        m.setIcon(new Icon(this, Icon.Size.SMALL, "marker-stroked", "ee8a65"));
-        mv.addMarker(m);
-
-        m = new Marker(mv, "Stockholm", "Sweden", new LatLng(59.32995, 18.06461));
-        m.setIcon(new Icon(this, Icon.Size.LARGE, "city", "3887be"));
-        mv.addMarker(m);
-
-        m = new Marker(mv, "Prague", "Czech Republic", new LatLng(50.08734, 14.42112));
-        m.setIcon(new Icon(this, Icon.Size.MEDIUM, "land-use", "3bb2d0"));
-        mv.addMarker(m);
-
-        m = new Marker(mv, "Athens", "Greece", new LatLng(37.97885, 23.71399));
-        mv.addMarker(m);
-
-        m = new Marker(mv, "Tokyo", "Japan", new LatLng(35.70247, 139.71588));
-        m.setIcon(new Icon(this, Icon.Size.LARGE, "city", "3887be"));
-        mv.addMarker(m);
-
-        m = new Marker(mv, "Ayacucho", "Peru", new LatLng(-13.16658, -74.21608));
-        m.setIcon(new Icon(this, Icon.Size.LARGE, "city", "3887be"));
-        mv.addMarker(m);
-
-        m = new Marker(mv, "Nairobi", "Kenya", new LatLng(-1.26676, 36.83372));
-        m.setIcon(new Icon(this, Icon.Size.LARGE, "city", "3887be"));
-        mv.addMarker(m);
-
-        m = new Marker(mv, "Canberra", "Australia", new LatLng(-35.30952, 149.12430));
-        m.setIcon(new Icon(this, Icon.Size.LARGE, "city", "3887be"));
-        mv.addMarker(m);
-
-        mv.setOnTilesLoadedListener(new TilesLoadedListener() {
-            @Override
-            public boolean onTilesLoaded() {
-                return false;
-            }
-
-            @Override
-            public boolean onTilesLoadStarted() {
-                // TODO Auto-generated method stub
-                return false;
-            }
-        });*/
-//        mv.setVisibility(View.VISIBLE);
-
-        /*Button bugsBut = changeButtonTypeface((Button) findViewById(R.id.bugsButton));
-        bugsBut.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String url = "https://github.com/mapbox/mapbox-android-sdk/issues?state=open";
-                Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                startActivity(i);
-            }
-        });*/
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu)
-    {
-        MenuInflater menuInflater = getMenuInflater();
-        menuInflater.inflate(R.menu.menu_activity_main, menu);
-        return super.onCreateOptionsMenu(menu);
+    protected void onStart() {
+        super.onStart();
+        // Connect the client.
+        mGoogleApiClient.connect();
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item)
+    protected void onStop() {
+        super.onStop();
+        // Disconnecting the client invalidates it.
+        if(mGoogleApiClient.isConnected()) {
+            mGoogleApiClient.disconnect();
+        }
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        // Get the last location
+        Location location = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+
+        // Change and read the textview with the new location
+        onChangeStreet(location);
+
+        // Create the request to the location updates
+        mLocationRequest = LocationRequest.create();
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        mLocationRequest.setInterval(60000); // Update location every minute
+
+        // Start the notification services
+        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,
+                mLocationRequest, mPendingIntent);
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        Log.i(TAG, "GoogleApiClient connection has been suspend");
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+        Log.i(TAG, "GoogleApiClient connection has failed");
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        onChangeStreet(location);
+    }
+
+    public void onButtonPressed (View v)
     {
-        switch (item.getItemId()) {
-            case R.id.menuItemStreets:
-                //replaceMapView(getString(R.string.streetMapId));
-                Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        Location location = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
 
-                getAddressForLocation(location.getLatitude(), location.getLongitude());
-                return true;
-            case R.id.menuItemSatellite:
-                replaceMapView(getString(R.string.satelliteMapId));
-                return true;
-            case R.id.menuItemTerrain:
-                replaceMapView(getString(R.string.terrainMapId));
-                return true;
-            case R.id.menuItemOutdoors:
-                replaceMapView(getString(R.string.outdoorsMapId));
-                return true;
-            case R.id.menuItemWoodcut:
-                replaceMapView(getString(R.string.woodcutMapId));
-                return true;
-            case R.id.menuItemPencil:
-                replaceMapView(getString(R.string.pencilMapId));
-                return true;
-            case R.id.menuItemSpaceship:
-                replaceMapView(getString(R.string.spaceShipMapId));
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
+        onChangeStreet(location);
+    }
+
+    public void onChangeStreet(Location location)
+    {
+        if (mLastLocation == null) { // Check if it the first time we start the app
+            ChangeStreet(location);
+        }
+        else {
+            // Update only when the location has change in 10 meters approximately
+            if (Math.abs(location.getLatitude() - mLastLocation.getLatitude()) > 0.0001 ||
+                    Math.abs(location.getLongitude() - mLastLocation.getLongitude()) > 0.0001) {
+                ChangeStreet(location);
+            }
         }
     }
 
-    public void getAddressForLocation(double LATITUDE, double LONGITUDE) {
-        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+    public void ChangeStreet(Location location)
+    {
+        String street = Utility.getAddressForLocation(this, location.getLatitude(), location.getLongitude());
+        streetName.setText(street);
 
-        try {
-            List<Address> addresses = geocoder.getFromLocation(LATITUDE, LONGITUDE, 1);
+        ttobj.speak(street, TextToSpeech.QUEUE_FLUSH, null);
 
-            if (addresses != null) {
-                Address returnedAddress = addresses.get(0);
-                StringBuilder strReturnedAddress = new StringBuilder();
-                for (int i = 0; i < returnedAddress.getMaxAddressLineIndex(); i++) {
-                    strReturnedAddress.append(returnedAddress.getAddressLine(i)).append(" ");
-                }
-                TextView textView = (TextView)findViewById(R.id.street_name);
-                String street = strReturnedAddress.toString();
-                textView.setText(strReturnedAddress.toString());
-                ttobj.speak(street, TextToSpeech.QUEUE_FLUSH, null);
-                Log.d("Address: ", strReturnedAddress.toString());
-                //et_lugar.setText(strReturnedAddress.toString());
-            }
-            else {
-                Log.d("No Address returned!", "");
-                //et_lugar.setText("No Address returned!");
-            }
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            Log.d("Cannot get Address!", "");
-            //et_lugar.setText("Canont get Address!");
-        }
-    }
-
-    protected void replaceMapView(String layer) {
-
-        if (TextUtils.isEmpty(layer) || TextUtils.isEmpty(currentMap) || currentMap.equalsIgnoreCase(layer)) {
-            return;
-        }
-
-        ITileLayer source;
-        BoundingBox box;
-
-        source = new MapboxTileLayer(layer);
-
-        mv.setTileSource(source);
-        box = source.getBoundingBox();
-        mv.setScrollableAreaLimit(box);
-        mv.setMinZoomLevel(mv.getTileProvider().getMinimumZoomLevel());
-        mv.setMaxZoomLevel(mv.getTileProvider().getMaximumZoomLevel());
-        currentMap = layer;
-/*
-        mv.setCenter(mv.getTileProvider().getCenterCoordinate());
-        mv.setZoom(0);
-*/
-    }
-
-    private Button changeButtonTypeface(Button button) {
-        return button;
-    }
-
-    public LatLng getMapCenter() {
-        return mv.getCenter();
-    }
-
-    public void setMapCenter(ILatLng center) {
-        mv.setCenter(center);
-    }
-
-    /**
-     * Method to show settings  in alert dialog
-     * On pressing Settings button will lauch Settings Options - GPS
-     */
-    public void showSettingsAlert() {
-        AlertDialog.Builder alertDialog = new AlertDialog.Builder(getBaseContext());
-
-        // Setting Dialog Title
-        alertDialog.setTitle("GPS settings");
-
-        // Setting Dialog Message
-        alertDialog.setMessage("GPS is not enabled. Do you want to go to settings menu?");
-
-        // On pressing Settings button
-        alertDialog.setPositiveButton("Settings", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int which) {
-                Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                getBaseContext().startActivity(intent);
-            }
-        });
-
-        // on pressing cancel button
-        alertDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
-
-        // Showing Alert Message
-        alertDialog.show();
+        mLastLocation = location;
     }
 }
+

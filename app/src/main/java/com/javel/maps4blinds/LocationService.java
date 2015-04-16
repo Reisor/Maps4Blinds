@@ -20,26 +20,26 @@ public class LocationService extends IntentService
 
     public LocationService() {
         super("LocationIntentService");
-
-        mTts = new TextToSpeech(getApplicationContext(),
-                new TextToSpeech.OnInitListener() {
-                    @Override
-                    public void onInit(int status) {
-                        if (status != TextToSpeech.ERROR) {
-                            mTts.setLanguage(Locale.getDefault());
-                        }
-                    }
-                }
-        );
     }
 
     @Override
     protected void onHandleIntent(Intent intent) {
         Location location = intent.getParcelableExtra(FusedLocationProviderApi.KEY_LOCATION_CHANGED);
 
-        if (location != null) {
-            Utility.writeLog(TAG, "Location: " + location.getLatitude() + "," + location.getLongitude());
+        if (mTts == null) {
+            mTts = new TextToSpeech(getApplicationContext(),
+                    new TextToSpeech.OnInitListener() {
+                        @Override
+                        public void onInit(int status) {
+                            if (status != TextToSpeech.ERROR) {
+                                mTts.setLanguage(Locale.getDefault());
+                            }
+                        }
+                    }
+            );
+        }
 
+        if (location != null) {
             String street = Utility.getAddressForLocation(this, location.getLatitude(), location.getLongitude());
 
             NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);

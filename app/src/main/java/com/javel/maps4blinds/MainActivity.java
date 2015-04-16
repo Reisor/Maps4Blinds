@@ -111,17 +111,6 @@ public class MainActivity extends Activity implements
 
         // Change and read the textview with the new location
         onChangeStreet(location);
-
-        // Create the request to the location updates
-        mLocationRequest = LocationRequest.create();
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        mLocationRequest.setInterval(60000); // Update location every minute
-
-        // Start the notification services
-        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,
-                mLocationRequest, mPendingIntent);
-
-        mServiceStart = true;
     }
 
     @Override

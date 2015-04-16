@@ -32,7 +32,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:onClick="onButtonServicePressed"
-            android:text="@string/button_service_off" />
+            android:text="@string/button_service_on" />
         
         </LinearLayout>
 

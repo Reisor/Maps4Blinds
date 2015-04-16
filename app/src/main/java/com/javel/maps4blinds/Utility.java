@@ -30,7 +30,6 @@ public class Utility {
 
                 // Get the address without the postal code and city
                 for (int i = 0; i < returnedAddress.getMaxAddressLineIndex() - 1; i++) {
-                    writeLog(TAG, returnedAddress.getAddressLine(i));
                     strReturnedAddress.append(returnedAddress.getAddressLine(i)).append(" ");
                 }
 

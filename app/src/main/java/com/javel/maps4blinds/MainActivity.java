@@ -6,7 +6,6 @@ import android.location.Location;
 import android.app.Activity;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -26,27 +25,32 @@ public class MainActivity extends Activity implements
 
     private final String TAG = "Maps4Blinds";
 
+    /// Google api client object
     private GoogleApiClient mGoogleApiClient;
 
+    /// Location request
     private LocationRequest mLocationRequest;
 
-    /**
-     * Represents a geographical location.
-     */
+    /// Represents a geographical location
     protected Location mLastLocation;
 
-    protected TextToSpeech ttobj;
+    /// Text to speech object
+    public TextToSpeech mTextToSpeech;
 
-    /**
-     * Intentes for the notificaction service
-     */
+    /// Intent to Location Service class
     private Intent mIntentService;
+
+    /// Pending intent of intent service
     private PendingIntent mPendingIntent;
 
-    protected TextView streetName;
-    protected Button buttonService;
+    /// Street name text view
+    protected TextView mStreetName;
 
-    protected Boolean serviceStart;
+    /// Service connection handler button
+    protected Button mButtonService;
+
+    /// Service connection status
+    protected Boolean mServiceStart;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,8 +59,8 @@ public class MainActivity extends Activity implements
         setContentView(R.layout.activity_main);
 
         // Add the reference to the street name textview
-        streetName = (TextView)findViewById(R.id.street_name);
-        buttonService = (Button)findViewById(R.id.button_service);
+        mStreetName = (TextView)findViewById(R.id.street_name);
+        mButtonService = (Button)findViewById(R.id.button_service);
 
         // Create and link the intent with the notification service
         mIntentService = new Intent(this, LocationService.class);
@@ -70,18 +74,18 @@ public class MainActivity extends Activity implements
                 .build();
 
         // Initialize the text to speech object
-        ttobj = new TextToSpeech(getApplicationContext(),
+        mTextToSpeech = new TextToSpeech(getApplicationContext(),
                 new TextToSpeech.OnInitListener() {
                     @Override
                     public void onInit(int status) {
                         if(status != TextToSpeech.ERROR){
-                            ttobj.setLanguage(Locale.getDefault());
+                            mTextToSpeech.setLanguage(Locale.getDefault());
                         }
                     }
                 }
         );
 
-        serviceStart = false;
+        mServiceStart = false;
     }
 
     @Override
@@ -117,17 +121,17 @@ public class MainActivity extends Activity implements
         LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,
                 mLocationRequest, mPendingIntent);
 
-        serviceStart = true;
+        mServiceStart = true;
     }
 
     @Override
     public void onConnectionSuspended(int i) {
-        Log.i(TAG, "GoogleApiClient connection has been suspend");
+        Utility.writeLog(TAG, "GoogleApiClient connection has been suspend");
     }
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
-        Log.i(TAG, "GoogleApiClient connection has failed");
+        Utility.writeLog(TAG, "GoogleApiClient connection has failed");
     }
 
     @Override
@@ -144,13 +148,13 @@ public class MainActivity extends Activity implements
 
     public void onButtonServicePressed (View v)
     {
-        if (serviceStart){
+        if (mServiceStart){
             LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient,
                     mPendingIntent);
 
-            buttonService.setText(R.string.button_service_on);
+            mButtonService.setText(R.string.button_service_on);
 
-            serviceStart = false;
+            mServiceStart = false;
         }
         else {
             // Create the request to the location updates
@@ -162,32 +166,42 @@ public class MainActivity extends Activity implements
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,
                     mLocationRequest, mPendingIntent);
 
-            buttonService.setText(R.string.button_service_off);
+            mButtonService.setText(R.string.button_service_off);
 
-            serviceStart = true;
+            mServiceStart = true;
         }
     }
 
+    /**
+     * Check if the location has change and call the changeStreet method
+     *
+     * @param location Current location
+     */
     public void onChangeStreet(Location location)
     {
         if (mLastLocation == null) { // Check if it the first time we start the app
-            ChangeStreet(location);
+            changeStreet(location);
         }
         else {
             // Update only when the location has change in 10 meters approximately
             if (Math.abs(location.getLatitude() - mLastLocation.getLatitude()) > 0.0001 ||
                     Math.abs(location.getLongitude() - mLastLocation.getLongitude()) > 0.0001) {
-                ChangeStreet(location);
+                changeStreet(location);
             }
         }
     }
 
-    public void ChangeStreet(Location location)
+    /**
+     * Change the street text view and reproduce it.
+     *
+     * @param location Current location
+     */
+    public void changeStreet(Location location)
     {
         String street = Utility.getAddressForLocation(this, location.getLatitude(), location.getLongitude());
-        streetName.setText(street);
+        mStreetName.setText(street);
 
-        ttobj.speak(street, TextToSpeech.QUEUE_FLUSH, null);
+        mTextToSpeech.speak(street, TextToSpeech.QUEUE_FLUSH, null);
 
         mLastLocation = location;
     }

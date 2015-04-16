@@ -4,18 +4,33 @@ import android.app.IntentService;
 import android.app.NotificationManager;
 import android.content.Intent;
 import android.location.Location;
+import android.speech.tts.TextToSpeech;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationCompat.Builder;
-import android.util.Log;
 
 import com.google.android.gms.location.FusedLocationProviderApi;
+
+import java.util.Locale;
 
 public class LocationService extends IntentService
 {
     private final String TAG = "LocationService";
 
+    protected TextToSpeech mTts;
+
     public LocationService() {
         super("LocationIntentService");
+
+        mTts = new TextToSpeech(getApplicationContext(),
+                new TextToSpeech.OnInitListener() {
+                    @Override
+                    public void onInit(int status) {
+                        if (status != TextToSpeech.ERROR) {
+                            mTts.setLanguage(Locale.getDefault());
+                        }
+                    }
+                }
+        );
     }
 
     @Override
@@ -23,7 +38,7 @@ public class LocationService extends IntentService
         Location location = intent.getParcelableExtra(FusedLocationProviderApi.KEY_LOCATION_CHANGED);
 
         if (location != null) {
-            Log.i(TAG, "Location: " + location.getLatitude() + "," + location.getLongitude());
+            Utility.writeLog(TAG, "Location: " + location.getLatitude() + "," + location.getLongitude());
 
             String street = Utility.getAddressForLocation(this, location.getLatitude(), location.getLongitude());
 
@@ -34,6 +49,13 @@ public class LocationService extends IntentService
             builder.setSmallIcon(R.mipmap.ic_launcher);
 
             notificationManager.notify(1234, builder.build());
+
+            textToSpeech(street);
         }
     }
+
+    public void textToSpeech(String street) {
+        mTts.speak(street, TextToSpeech.QUEUE_FLUSH, null);
+    }
+
 }

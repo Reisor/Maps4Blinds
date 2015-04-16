@@ -23,27 +23,43 @@ public class Utility {
             // Get the street in the given coordinates
             List<Address> addresses = geocoder.getFromLocation(LATITUDE, LONGITUDE, 1);
 
-            if (addresses != null) {
+            if (addresses != null) { // if there is an addres
+                // Obtain the full address
                 Address returnedAddress = addresses.get(0);
                 StringBuilder strReturnedAddress = new StringBuilder();
-                for (int i = 0; i < returnedAddress.getMaxAddressLineIndex(); i++) {
+
+                // Get the address without the postal code and city
+                for (int i = 0; i < returnedAddress.getMaxAddressLineIndex() - 1; i++) {
+                    writeLog(TAG, returnedAddress.getAddressLine(i));
                     strReturnedAddress.append(returnedAddress.getAddressLine(i)).append(" ");
                 }
 
                 street = strReturnedAddress.toString();
 
-                Log.i(TAG, "Address: " + street);
+                writeLog(TAG, "Address: " + street);
             }
             else {
-                Log.i(TAG, "No Address returned!");
+                writeLog(TAG, "No Address returned!");
                 return "";
             }
         } catch (IOException e) {
             e.printStackTrace();
-            Log.i(TAG, "Cannot get Address!");
+            writeLog(TAG, "Cannot get Address!");
             return "Error";
         }
 
         return street;
+    }
+
+    /**
+     * Write a log message if is in Debug mode.
+     *
+     * @param tag String of the class
+     * @param s Message to log
+     */
+    public static void writeLog(String tag, String s) {
+        if (BuildConfig.DEBUG) {
+            Log.d(tag, s);
+        }
     }
 }

@@ -1,39 +1,7 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                android:orientation="vertical"
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent" >
-
-    <LinearLayout
-        android:id="@+id/linear_layout_main"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
-
-        <TextView
-            android:id="@+id/street_name"
-            android:layout_width="match_parent"
-            android:layout_height="80dp"
-            android:layout_gravity="center"
-            android:textSize="35sp"
-            android:gravity="center"
-            android:text="@string/street_name"/>
-
-        <Button
-            android:id="@+id/button_find"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:onClick="onButtonFindPressed"
-            android:text="@string/search_button_name" />
-
-        <Button
-            android:id="@+id/button_service"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:onClick="onButtonServicePressed"
-            android:text="@string/button_service_on" />
-        
-        </LinearLayout>
-
-</RelativeLayout>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity"
+    tools:ignore="MergeRootFrame" />

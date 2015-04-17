@@ -3,8 +3,10 @@ package com.javel.maps4blinds;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.location.Location;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.speech.tts.TextToSpeech;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -26,6 +28,7 @@ public class StreetsFragment extends Fragment implements
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener
+
 {
 
     private final String TAG = "StreetsFragment";
@@ -50,6 +53,12 @@ public class StreetsFragment extends Fragment implements
     /// Pending intent of intent service
     private PendingIntent mPendingIntent;
 
+    /// Notification interval
+    private int notificationTime;
+
+    /// Notification interval multiplier
+    private int notificationTimeMultiplier;
+
     /// Street name text view
     protected TextView mStreetName;
 
@@ -70,6 +79,10 @@ public class StreetsFragment extends Fragment implements
         View rootView = inflater.inflate (R.layout.fragment_main, container, false);
 
         activityContext = this.getActivity ();
+
+        notificationTime = 60;
+
+        notificationTimeMultiplier = 1000;
 
         // Add the reference to the street name textview
         mStreetName = (TextView) rootView.findViewById (R.id.street_name);
@@ -106,6 +119,16 @@ public class StreetsFragment extends Fragment implements
         mButtonService.setOnClickListener (this);
 
         return rootView;
+    }
+
+    @Override
+    public void onResume ()
+    {
+        super.onResume ();
+
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(activityContext);
+
+        String time = settings.getString ("pref_time_notification_key", "60");
     }
 
     @Override
@@ -191,7 +214,7 @@ public class StreetsFragment extends Fragment implements
             // Create the request to the location updates
             mLocationRequest = LocationRequest.create ();
             mLocationRequest.setPriority (LocationRequest.PRIORITY_HIGH_ACCURACY);
-            mLocationRequest.setInterval (60000); // Update location every minute
+            mLocationRequest.setInterval (notificationTime * notificationTimeMultiplier); // Update location every minute
 
             // Start the notification services
             LocationServices.FusedLocationApi.requestLocationUpdates (mGoogleApiClient,
@@ -238,6 +261,30 @@ public class StreetsFragment extends Fragment implements
         mTextToSpeech.speak (street, TextToSpeech.QUEUE_FLUSH, null);
 
         mLastLocation = location;
+    }
+
+    public void onNotificationTimeChange (int time)
+    {
+        notificationTime = time;
+
+        if (mServiceStart)
+        {
+            LocationServices.FusedLocationApi.removeLocationUpdates (mGoogleApiClient,
+                    mPendingIntent);
+        }
+
+        // Create the request to the location updates
+        mLocationRequest = LocationRequest.create ();
+        mLocationRequest.setPriority (LocationRequest.PRIORITY_HIGH_ACCURACY);
+        mLocationRequest.setInterval (notificationTime * notificationTimeMultiplier); // Update location every minute
+
+        // Start the notification services
+        LocationServices.FusedLocationApi.requestLocationUpdates (mGoogleApiClient,
+                mLocationRequest, mPendingIntent);
+
+        mButtonService.setText (R.string.button_service_off);
+
+        mServiceStart = true;
     }
 
 }

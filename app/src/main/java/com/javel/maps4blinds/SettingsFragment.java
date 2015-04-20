@@ -10,7 +10,7 @@ import android.preference.PreferenceFragment;
 public class SettingsFragment extends PreferenceFragment
     implements SharedPreferences.OnSharedPreferenceChangeListener
 {
-    ///
+    /// Time between notification
     private static String _notificationTime;
 
     @Override
@@ -54,6 +54,10 @@ public class SettingsFragment extends PreferenceFragment
             _notificationTime = sharedPreferences.getString (key, "55");
     }
 
+    /**
+     * Initialize the summary of the preference
+     * @param p Preference item.
+     */
     private void initSummary (Preference p)
     {
         if (p instanceof PreferenceCategory)
@@ -69,6 +73,10 @@ public class SettingsFragment extends PreferenceFragment
         }
     }
 
+    /**
+     * Update the summary of the given preference.
+     * @param p Preference item.
+     */
     private void updatePreferences (Preference p)
     {
         if (p instanceof EditTextPreference)
@@ -79,6 +87,11 @@ public class SettingsFragment extends PreferenceFragment
         }
     }
 
+    /**
+     * Ask for the time between notifications of the settings menu.
+     *
+     * @return Time between notifications
+     */
     public static int getNotificationTime ()
     {
         if (_notificationTime == null)

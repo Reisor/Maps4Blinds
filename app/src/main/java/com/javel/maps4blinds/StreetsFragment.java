@@ -261,11 +261,16 @@ public class StreetsFragment extends Fragment implements
         mLastLocation = location;
     }
 
+    /**
+     * Change the interval time of the notification
+     *
+     * @param time Notification time
+     */
     public void onNotificationTimeChange (int time)
     {
         notificationTime = time;
 
-        if (mServiceStart)
+        if (mServiceStart && mGoogleApiClient.isConnected ())
         {
             LocationServices.FusedLocationApi.removeLocationUpdates (mGoogleApiClient,
                     mPendingIntent);

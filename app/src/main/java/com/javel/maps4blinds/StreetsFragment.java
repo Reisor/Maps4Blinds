@@ -3,10 +3,8 @@ package com.javel.maps4blinds;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.location.Location;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.speech.tts.TextToSpeech;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -88,7 +86,7 @@ public class StreetsFragment extends Fragment implements
         mStreetName = (TextView) rootView.findViewById (R.id.street_name);
 
         // Create and link the intent with the notification service
-        mIntentService = new Intent(getActivity ().getApplicationContext (), LocationService.class);
+        mIntentService = new Intent(getActivity (), LocationService.class);
         mPendingIntent = PendingIntent.getService(getActivity ().getApplicationContext (), 1, mIntentService, 0);
 
         // Initialize the google play services
@@ -126,9 +124,9 @@ public class StreetsFragment extends Fragment implements
     {
         super.onResume ();
 
-        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(activityContext);
+        int time = SettingsFragment.getNotificationTime ();
 
-        String time = settings.getString ("pref_time_notification_key", "60");
+        onNotificationTimeChange (time);
     }
 
     @Override
@@ -271,20 +269,20 @@ public class StreetsFragment extends Fragment implements
         {
             LocationServices.FusedLocationApi.removeLocationUpdates (mGoogleApiClient,
                     mPendingIntent);
+
+            // Create the request to the location updates
+            mLocationRequest = LocationRequest.create ();
+            mLocationRequest.setPriority (LocationRequest.PRIORITY_HIGH_ACCURACY);
+            mLocationRequest.setInterval (notificationTime * notificationTimeMultiplier); // Update location every minute
+
+            // Start the notification services
+            LocationServices.FusedLocationApi.requestLocationUpdates (mGoogleApiClient,
+                    mLocationRequest, mPendingIntent);
+
+            mButtonService.setText (R.string.button_service_off);
+
+            mServiceStart = true;
         }
-
-        // Create the request to the location updates
-        mLocationRequest = LocationRequest.create ();
-        mLocationRequest.setPriority (LocationRequest.PRIORITY_HIGH_ACCURACY);
-        mLocationRequest.setInterval (notificationTime * notificationTimeMultiplier); // Update location every minute
-
-        // Start the notification services
-        LocationServices.FusedLocationApi.requestLocationUpdates (mGoogleApiClient,
-                mLocationRequest, mPendingIntent);
-
-        mButtonService.setText (R.string.button_service_off);
-
-        mServiceStart = true;
     }
 
 }

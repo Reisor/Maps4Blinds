@@ -4,6 +4,7 @@
                   android:layout_height="match_parent">
 
     <EditTextPreference
+        android:id="@+id/pref_time_notification"
         android:title="@string/pref_time_notification_label"
         android:key="@string/pref_time_notification_key"
         android:defaultValue="@string/pref_time_notification_default"
